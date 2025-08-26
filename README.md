@@ -40,7 +40,7 @@ An intelligent Python code analyzer and refactoring tool powered by GPT language
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/CodeRefactorGPT.git
+git clone https://github.com/Endromia-9027/CodeRefactorGPT.git
 cd CodeRefactorGPT
 ```
 
