@@ -88,7 +88,7 @@ To analyze without modifying the code:
 python code_analyzer.py your_file.py
 ```
 
-![Analysis Mode](docs/images/analysis_mode.png)
+![Analysis Mode](docs/images/analysis_mode.png)(docs/images/analysis_mode2.png)
 
 ## 🎯 Command Line Options
 
