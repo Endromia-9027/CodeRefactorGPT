@@ -1,4 +1,6 @@
 # CodeRefactorGPT 🤖
+- Supports languages - Python
+<img align="right" src="https://visitor-badge.laobi.icu/badge?page_id=endromia-9027.CodeRefactorGPT" />
 
 An intelligent Python code analyzer and refactoring tool powered by GPT language models. It performs comprehensive code analysis and provides smart refactoring suggestions with beautiful, rich terminal output.
 
@@ -38,7 +40,7 @@ An intelligent Python code analyzer and refactoring tool powered by GPT language
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/CodeRefactorGPT.git
+git clone https://github.com/Endromia-9027/CodeRefactorGPT.git
 cd CodeRefactorGPT
 ```
 
