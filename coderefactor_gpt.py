@@ -87,7 +87,7 @@ def semantic_analysis(code: str, llm_model: str, llm_provider: str, expert: bool
         logger.error(f"[red]❌ Unsupported LLM provider: {llm_provider}[/red]")
         return None
 
-    template = """You are a Professional Python code analyzer. Semantically analyze the following Python code. Look for logical errors, potential improvements, security issues, performance bottlenecks, and overall code quality. Don't give the improved code, you can give some improved code snippets if you want but don't give in most cases, just discuss what code is doing and suggest improvements. Return the result in strict JSON format with a single 'analysis' field, e.g., {{\"analysis\": \"...\"}}:
+    template = """You are a Professional Python code analyzer. Semantically analyze the following Python code. Look for logical errors, potential improvements, security issues, performance bottlenecks, and overall code quality. Don't give the improved code, you can give some improved code snippets, just discuss what code is doing and suggest improvements. Return the result in strict JSON format with a single 'analysis' field, e.g., {{\"analysis\": \"...\"}}:
 
         ```python
         {code}
