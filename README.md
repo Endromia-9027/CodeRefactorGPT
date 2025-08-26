@@ -6,7 +6,7 @@ An intelligent Python code analyzer and refactoring tool powered by GPT language
 
 ## ✨ Features
 
-- � **Multi-level Analysis**
+- 📊 **Multi-level Analysis**
   - Syntax error detection using AST
   - Runtime error checking in a safe environment
   - Deep semantic analysis using AI
