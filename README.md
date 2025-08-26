@@ -78,7 +78,7 @@ For deep analysis with performance focus:
 python code_analyzer.py your_file.py --expert --refactor-output optimized.py
 ```
 
-![Expert Mode](docs/images/expert_mode.png)
+![Expert Mode](docs/images/expert_mode.png)![Expert Mode2](docs/images/expert_mode2.png)![Expert Mode3](docs/images/expert_mode3.png)![Expert Mode4](docs/images/expert_mode4.png)
 
 ### Analysis Only
 
@@ -88,7 +88,7 @@ To analyze without modifying the code:
 python code_analyzer.py your_file.py
 ```
 
-![Analysis Mode](docs/images/analysis_mode.png)(docs/images/analysis_mode2.png)
+![Analysis Mode](docs/images/analysis_mode.png)![Analysis Mode2](docs/images/analysis_mode2.png)
 
 ## 🎯 Command Line Options
 
