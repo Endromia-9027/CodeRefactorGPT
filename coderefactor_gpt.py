@@ -21,6 +21,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 import random
 from package_utils import check_and_install_dependencies
 
+from dotenv import load_dotenv
 # Set up rich logging for modern, colorful, enhanced logs
 FORMAT = "%(message)s"
 logging.basicConfig(
@@ -32,6 +33,8 @@ logging.basicConfig(
 logger = logging.getLogger("rich")
 console = Console()
 global_analysis = None  # Global variable to store analysis
+
+load_dotenv()
 
 def read_logo() -> str:
     """Read the logo from logo.txt."""
