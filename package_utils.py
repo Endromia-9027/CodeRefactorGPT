@@ -4,6 +4,7 @@ import subprocess
 import sys
 from rich.console import Console
 from rich.prompt import Confirm
+from rich.panel import Panel
 
 console = Console()
 
@@ -34,22 +35,41 @@ def is_package_installed(package: str) -> bool:
 
 def get_builtin_modules() -> set:
     """Get a set of Python's built-in modules."""
-    return set(sys.builtin_module_names) | {'os', 'sys', 'time', 'random', 'math', 'datetime', 'collections', 'json', 'logging'}
+    return set(sys.builtin_module_names) | {'os', 'sys', 'time', 'random', 'math', 'datetime', 'collections', 'json', 'logging', 'pathlib', 'typing', 'ast', 'argparse'}
 
-def check_and_install_dependencies(code: str) -> bool:
-    """Check for missing dependencies in the code and install them if confirmed."""
+def check_and_install_dependencies(code: str, progress=None) -> bool:
+    """Check for missing dependencies in the code and install them if confirmed.
+    
+    Args:
+        code (str): The Python code to check for dependencies
+        progress (Progress, optional): Progress instance to pause during dependency check
+    
+    Returns:
+        bool: True if all dependencies are satisfied (installed or skipped), False otherwise
+    """
+    if progress:
+        # Pause the progress display during dependency check
+        progress.stop()
+    
     imports = extract_imports(code)
     builtin_modules = get_builtin_modules()
     missing_packages = {pkg for pkg in imports if pkg not in builtin_modules and not is_package_installed(pkg)}
     
     if not missing_packages:
+        if progress:
+            progress.start()
         return True
     
-    console.print("\n[yellow]📦 Additional dependencies required:[/yellow]")
-    for pkg in missing_packages:
-        console.print(f"  - {pkg}")
+    # Clear any previous output and show dependencies panel
+    console.print()
+    console.print(Panel(
+        "\n".join([f"  • {pkg}" for pkg in missing_packages]),
+        title="📦 Additional Dependencies Required",
+        border_style="yellow"
+    ))
+    console.print()
     
-    if Confirm.ask("\n[bold yellow]Do you want to install these packages?[/bold yellow]"):
+    if Confirm.ask("[bold yellow]Do you want to install these packages?[/bold yellow]"):
         console.print("\n[bold]Installing packages...[/bold]")
         for pkg in missing_packages:
             try:
@@ -57,6 +77,13 @@ def check_and_install_dependencies(code: str) -> bool:
                 console.print(f"[green]✅ Successfully installed {pkg}[/green]")
             except subprocess.CalledProcessError as e:
                 console.print(f"[red]❌ Failed to install {pkg}: {str(e)}[/red]")
+                if progress:
+                    progress.start()
                 return False
+        if progress:
+            progress.start()
         return True
+    
+    if progress:
+        progress.start()
     return False
