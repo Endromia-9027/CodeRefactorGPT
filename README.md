@@ -1,8 +1,9 @@
 # CodeRefactorGPT 🤖
-- Supports languages - Python
-<img align="right" src="https://visitor-badge.laobi.icu/badge?page_id=endromia-9027.CodeRefactorGPT" />
 
-An intelligent Python code analyzer and refactoring tool powered by GPT language models. It performs comprehensive code analysis and provides smart refactoring suggestions with beautiful, rich terminal output.
+- Supports languages - Python
+  <img align="right" src="https://visitor-badge.laobi.icu/badge?page_id=endromia-9027.CodeRefactorGPT" />
+
+A powerful Command Line Interface (CLI) tool for intelligent Python code analysis and refactoring, powered by GPT language models. It performs comprehensive code analysis, handles dependencies automatically, and provides smart refactoring suggestions with beautiful, rich terminal output.
 
 ![CodeRefactorGPT Logo](docs/images/logo.png)
 
@@ -29,6 +30,7 @@ An intelligent Python code analyzer and refactoring tool powered by GPT language
   - Performance optimization recommendations
   - Best practices and security tips
   - Code quality improvement hints
+  - Automatic dependency detection and management
 
 - 📊 **Comprehensive Reporting**
   - Detailed analysis reports
@@ -111,6 +113,7 @@ python code_analyzer.py your_file.py
 - 🎯 Beginner-friendly changes
 - 📝 Light documentation additions
 - 🔄 Fast turnaround time
+- 📦 Automatic dependency management
 - 🤖 Uses gpt-5-mini by default
 
 ### Expert Mode
@@ -158,6 +161,20 @@ python code_analyzer.py your_file.py
    • Best practices suggestions
 ```
 
+### Dependency Management
+
+```
+📦 Additional dependencies required:
+  - matplotlib
+  - pandas
+
+Do you want to install these packages? [y/n]: y
+
+Installing packages...
+✅ Successfully installed matplotlib
+✅ Successfully installed pandas
+```
+
 ### Console Output
 
 - Colorful progress indicators
@@ -166,6 +183,20 @@ python code_analyzer.py your_file.py
 - Success messages in green
 - Total execution time
 - Random-colored logo display
+
+## 🔧 Advanced Features
+
+### Automatic Dependency Management
+
+CodeRefactorGPT intelligently handles package dependencies:
+
+- 🔍 Automatically detects required packages in refactored code
+- 📋 Lists missing dependencies
+- ✨ Interactive installation prompt
+- ⚡ Seamless package installation
+- ✅ Validates successful installation
+
+This ensures that refactored code works out of the box without manual dependency management.
 
 ## 🤝 Contributing
 

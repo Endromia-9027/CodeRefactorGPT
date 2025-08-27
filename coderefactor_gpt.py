@@ -19,6 +19,7 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 import random
+from package_utils import check_and_install_dependencies
 
 # Set up rich logging for modern, colorful, enhanced logs
 FORMAT = "%(message)s"
@@ -58,10 +59,10 @@ def check_syntax(code: str) -> bool:
     try:
         ast.parse(code)
         logger.info("[green]✅ Syntax check passed: No syntax errors detected.[/green]")
-        return True
+        return False
     except SyntaxError as e:
         logger.error(f"[red]❌ Syntax error detected: {str(e)}[/red]")
-        return False
+        return str(e)
 
 def check_runtime(code: str):
     """Attempt to execute the code in a restricted environment to detect runtime errors."""
@@ -74,7 +75,7 @@ def check_runtime(code: str):
         logger.error(f"[red]❌ Runtime error detected: {str(e)}[/red]")
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def semantic_analysis(code: str, llm_model: str, llm_provider: str, expert: bool = False) -> Optional[Dict]:
+def semantic_analysis(code: str, llm_model: str, llm_provider: str, expert: bool = False, syntax_error: str = None, runtime_error: str = None) -> Optional[Dict]:
     """Use LangChain + LLM for semantic analysis."""
     global global_analysis
     api_key = os.getenv('OPENAI_API_KEY')
@@ -86,8 +87,16 @@ def semantic_analysis(code: str, llm_model: str, llm_provider: str, expert: bool
     if not llm:
         logger.error(f"[red]❌ Unsupported LLM provider: {llm_provider}[/red]")
         return None
+        
+    error_context = ""
+    if syntax_error:
+        error_context = f"\nSyntax Error found: {syntax_error}"
+    if runtime_error:
+        error_context += f"\nRuntime Error found: {runtime_error}"
 
     template = """You are a Professional Python code analyzer. Semantically analyze the following Python code. Look for logical errors, potential improvements, security issues, performance bottlenecks, and overall code quality. Don't give the improved code, you can give some improved code snippets, just discuss what code is doing and suggest improvements. Return the result in strict JSON format with a single 'analysis' field, e.g., {{\"analysis\": \"...\"}}:
+
+        {error_context}
 
         ```python
         {code}
@@ -95,12 +104,14 @@ def semantic_analysis(code: str, llm_model: str, llm_provider: str, expert: bool
     if expert:
         template = """You are a Professional Python code analyzer in expert mode. Take your time to deeply analyze the following Python code for logical errors, potential improvements, security issues, performance bottlenecks, and overall code quality, with a primary focus on minimizing runtime and memory consumption as low as possible, no matter what. People chose expert mode because they want the best, professional, and robust code with the least memory and runtime consumption, as if in a coding competition. Discuss what the code is doing, suggest optimizations especially for performance, and provide detailed recommendations. Don't give the improved code, you can give some improved code snippets if you want but don't give in most cases. Return the result in strict JSON format with a single 'analysis' field, e.g., {{\"analysis\": \"...\"}}:
 
+        {error_context}
+
         ```python
         {code}
         ```"""
 
     prompt = PromptTemplate(
-        input_variables=["code"],
+        input_variables=["code", "error_context"],
         template=template
     )
     
@@ -113,7 +124,7 @@ def semantic_analysis(code: str, llm_model: str, llm_provider: str, expert: bool
     ) as progress:
         task = progress.add_task(description="Performing semantic analysis with LLM...", total=None)
         try:
-            response = chain.invoke({"code": code})
+            response = chain.invoke({"code": code, "error_context": error_context})
             response_text = response.content if hasattr(response, 'content') else str(response)
             try:
                 result = json.loads(response_text)
@@ -137,7 +148,7 @@ def semantic_analysis(code: str, llm_model: str, llm_provider: str, expert: bool
             raise
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
-def basic_analysis_and_refactor(code: str, llm_model: str, llm_provider: str) -> Optional[Dict]:
+def basic_analysis_and_refactor(code: str, llm_model: str, llm_provider: str, syntax_error, runtime_error) -> Optional[Dict]:
     """Perform combined semantic analysis and basic refactoring in one LLM call."""
     global global_analysis
     api_key = os.getenv('OPENAI_API_KEY')
@@ -150,9 +161,17 @@ def basic_analysis_and_refactor(code: str, llm_model: str, llm_provider: str) ->
         logger.error(f"[red]❌ Unsupported LLM provider: {llm_provider}[/red]")
         return None
 
+    error_context = ""
+    if syntax_error:
+        error_context = f"\nSyntax Error found: {syntax_error}"
+    if runtime_error:
+        error_context += f"\nRuntime Error found: {runtime_error}"
+
     prompt = PromptTemplate(
-        input_variables=["code"],
+        input_variables=["code", "error_context"],
         template="""You are a Professional Python code analyzer. For the following Python code, perform semantic analysis (logical errors, improvements, security, performance, quality) and provide a beginner-friendly refactored version with minimal changes(but include the changes which are obvious), necessary imports, and light comments. Avoid overengineering or complex structures. You're main priority is to be FAST, be fast as possible even at analysis and writing the refactored code, don't waste too much tokens as you are in the BASIC mode. In this mode, you are preferably to be fast, don't check the code too deeply, if the code is small like 20-35 lines, you should be done in 5-10 SECONDS, if the code is too long like 100-200 lines, you should do analysis and refactor code in under a minute. Remember, people chose the BASIC mode because they want the results faster and good. So please try to be FASTER while doing your best in the code analysis. Return the result in strict JSON format with 'analysis' and 'code' fields, e.g., {{\"analysis\": \"...\", \"code\": \"...\"}}.
+
+        {error_context}
 
         Example:
         Input:
@@ -179,7 +198,7 @@ def basic_analysis_and_refactor(code: str, llm_model: str, llm_provider: str) ->
     ) as progress:
         task = progress.add_task(description="Performing basic analysis and refactoring with LLM...", total=None)
         try:
-            response = chain.invoke({"code": code})
+            response = chain.invoke({"code": code, "error_context": error_context})
             response_text = response.content if hasattr(response, 'content') else str(response)
             try:
                 result = json.loads(response_text)
@@ -277,10 +296,15 @@ def refactor_code(code: str, output_path: str, llm_model: str, llm_provider: str
                 refactored_code = refactored_code.strip()
                 if refactored_code.startswith("```python"):
                     refactored_code = refactored_code[9:].rstrip("```").rstrip()
-                # Save the clean code
-                Path(output_path).write_text(refactored_code)
-                progress.update(task, completed=True)
-                logger.info(f"[green]✅ Refactored code saved to: {output_path}[/green]")
+                # Check and install any missing dependencies
+                if check_and_install_dependencies(refactored_code):
+                    # Save the clean code
+                    Path(output_path).write_text(refactored_code)
+                    progress.update(task, completed=True)
+                    logger.info(f"[green]✅ Refactored code saved to: {output_path}[/green]")
+                else:
+                    progress.update(task, completed=True)
+                    logger.warning("[yellow]⚠️ Some dependencies could not be installed. The refactored code may not work correctly.[/yellow]")
             except json.JSONDecodeError:
                 logger.error("[red]❌ Failed to parse refactored code as JSON.[/red]")
                 raise
@@ -370,24 +394,33 @@ def main():
 
     code = read_code_file(args.file_path)
     
-    syntax_ok = check_syntax(code)
+    syntax_error = check_syntax(code)
+    runtime_error = None
     
-    if syntax_ok:
-        check_runtime(code)
+    if not syntax_error:
+        try:
+            check_runtime(code)
+        except Exception as e:
+            runtime_error = str(e)
     
     if args.basic and args.refactor_output:
         # Combined basic analysis and refactor
-        result = basic_analysis_and_refactor(code, llm_model, args.llm_provider)
+        result = basic_analysis_and_refactor(code, llm_model, args.llm_provider, syntax_error=syntax_error, runtime_error=runtime_error)
         if result and "code" in result:
             refactored_code = result["code"].strip()
             if refactored_code.startswith("```python"):
                 refactored_code = refactored_code[9:].rstrip("```").rstrip()
-            Path(args.refactor_output).write_text(refactored_code)
-            logger.info(f"🤖 [yellow] Used Model: {llm_model}")
-            logger.info(f"[bold green]✅ Refactored code saved to: {args.refactor_output}[/bold green]")
+            # Check and install any missing dependencies
+            if check_and_install_dependencies(refactored_code):
+                Path(args.refactor_output).write_text(refactored_code)
+                logger.info(f"🤖 [yellow] Used Model: {llm_model}")
+                logger.info(f"[bold green]✅ Refactored code saved to: {args.refactor_output}[/bold green]")
+            else:
+                logger.warning("[yellow]⚠️ Some dependencies could not be installed. The refactored code may not work correctly.[/yellow]")
     else:
         # Normal or expert semantic analysis
-        result = semantic_analysis(code, llm_model, args.llm_provider, expert=args.expert)
+        result = semantic_analysis(code, llm_model, args.llm_provider, expert=args.expert, 
+                                 syntax_error=syntax_error, runtime_error=runtime_error)
         # Normal or expert refactor if requested
         if args.refactor_output:
             refactor_code(code, args.refactor_output, llm_model, args.llm_provider, expert=args.expert)
