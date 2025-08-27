@@ -54,12 +54,10 @@ pip install -r requirements.txt
 
 3. Set up your OpenAI API key:
 
-```bash
-# On Windows
-set OPENAI_API_KEY=your-api-key-here
+Open the `.env` file in the project root:
 
-# On Linux/Mac
-export OPENAI_API_KEY=your-api-key-here
+```plaintext
+OPENAI_API_KEY=replace-your-api-key-here
 ```
 
 ## 📚 Usage
