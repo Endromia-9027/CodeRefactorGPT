@@ -297,7 +297,7 @@ def refactor_code(code: str, output_path: str, llm_model: str, llm_provider: str
                 if refactored_code.startswith("```python"):
                     refactored_code = refactored_code[9:].rstrip("```").rstrip()
                 # Check and install any missing dependencies
-                if check_and_install_dependencies(refactored_code):
+                if check_and_install_dependencies(refactored_code, progress):
                     # Save the clean code
                     Path(output_path).write_text(refactored_code)
                     progress.update(task, completed=True)
@@ -324,7 +324,7 @@ def get_filename(path: str) -> str:
 
 def get_random_color() -> str:
     """Get a random color for the logo panel."""
-    logo_colors = ["red", "green", "magenta", "blue", "yellow", "bold cyan"]
+    logo_colors = ["bold red", "bold green", "bold magenta", "bold blue", "bold yellow", "bold cyan"]
     return random.choice(logo_colors)
 
 class LogoArgumentParser(argparse.ArgumentParser):
@@ -411,7 +411,7 @@ def main():
             if refactored_code.startswith("```python"):
                 refactored_code = refactored_code[9:].rstrip("```").rstrip()
             # Check and install any missing dependencies
-            if check_and_install_dependencies(refactored_code):
+            if check_and_install_dependencies(refactored_code, None):
                 Path(args.refactor_output).write_text(refactored_code)
                 logger.info(f"🤖 [yellow] Used Model: {llm_model}")
                 logger.info(f"[bold green]✅ Refactored code saved to: {args.refactor_output}[/bold green]")
